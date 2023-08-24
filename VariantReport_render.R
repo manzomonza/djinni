@@ -4,7 +4,7 @@
 ### OPTPARSE ###
 ################ library(optparse)
 
-snv = readr::read_tsv(parse_fp$parsed_snv)
+snv = readr::read_tsv(parsed_fp$parsed_snv)
 snv = VariantAnnotationModules::amino_acid_code_3_to_1(snv)
 
 clinvar_hits = readr::read_tsv(annotation_fp$clinvar)
@@ -36,7 +36,8 @@ snv = addLinks_clinvar(snv, clinvar_hits)
 snv = dplyr::select(snv, rowid, gene, coding, protein,AF, contains("link"))
 snv = dplyr::left_join(snv, horak)
 #
+html_dir = dirname(vcfpath)
 Variant_report_markdown = "/home/ionadmin/github_app/genie/VariantReport_renderN.Rmd"
 rmarkdown::render(Variant_report_markdown,
                   params = list(snv = snv),
-                  output_file = paste0(analysis_dir, 'VariantReport.html'))
+                  output_file = paste0(html_dir, '/VariantReport.html'))
