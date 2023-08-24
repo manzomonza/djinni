@@ -35,6 +35,6 @@ snv = params$snv
 ```
 
 ```{r}
-DT::datatable(snv)
+DT::datatable(snv, escape = FALSE)
 ```
 
