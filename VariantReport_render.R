@@ -36,7 +36,7 @@ snv = addLinks_clinvar(snv, clinvar_hits)
 snv = dplyr::select(snv, rowid, gene, coding, protein,AF, contains("link"))
 snv = dplyr::left_join(snv, horak)
 #
-html_dir = dirname(vcfpath)
+html_dir = analysis_output_dir(vcfpath)
 Variant_report_markdown = "/home/ionadmin/github_app/genie/VariantReport_renderN.Rmd"
 rmarkdown::render(Variant_report_markdown,
                   params = list(snv = snv),
