@@ -1,0 +1,16 @@
+```{r, include=FALSE}
+panel_df = params$panel_df
+filep = panel_df[which(panel_df$index == 1),]$filepath
+bcrh = clonesum_read(filep)
+
+filep = panel_df[which(panel_df$index == 2),]$filepath
+bcrkl = clonesum_read(filep)
+```
+
+Resultat der Parallelsequenzierung mit dem Oncomine BCR Pan-Clonality Assay (DNA):  
+Anzahl der nachgewiesenen Rearrangements am Immunoglobulin-Schwerekette (IGH) Locus:  
+`r nrow(bcrh)`  
+
+Anzahl der nachgewiesenen Rearrangements an Immunglobulin-Leichtketten (IGK und IGL) Loci:  
+`r nrow(bcrkl)`  
+

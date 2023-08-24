@@ -1,0 +1,40 @@
+---
+title: Pan BCR analysis
+author: University Hospital Basel -- Molecular Diagnostic Unit
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    highlight: zenburn
+params:
+  snv: ""
+  output_file: ""
+  sample_ID: ""
+  lineage_df: ""
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+# Load libs and data
+suppressPackageStartupMessages({
+library(knitr)
+library(kableExtra)
+library(ggplot2)
+library(gridExtra)
+library(data.table)
+library(tidyverse)
+library(janitor)
+library(LymphocyteSeq)
+})
+snv = params$snv
+
+```
+
+```{r}
+DT::datatable(snv)
+```
+

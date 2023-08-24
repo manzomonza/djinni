@@ -1,0 +1,34 @@
+```{r, include=FALSE}
+filep = panel_df$filepath[2]
+clonsum = clonesum_read(filep)
+clonsum_plotprep = plot_prep(clonsum)
+```
+
+```{r, include=FALSE}
+selection = top25_clonesum_selection_bcr(clonsum)
+```
+
+#### Top 25 clones
+```{r}
+selection %>%
+  kable("html", digits=3) %>%
+  kable_styling(font_size = 12)
+```
+
+#### Diagnostic Plots
+
+```{r, echo=FALSE, fig.cap="**Figure 1.** (Left panel) Total read counts per clone. (Right panel) Clone frequency indicated as ratio of read counts per clone on total read counts of the library. Red and blue dotted line are set at 10% and 1% of clone frequency. Largest clone is colored in blue. Productive reads are defined as having an in-frame CDR3 sequence and no stop codon"}
+
+r.counts = total_read_counts(clonsum_plotprep)
+clo.fr = clone_frequencies_clonsum(clonsum_plotprep)
+grid.arrange(r.counts,clo.fr,ncol=2,nrow=1)
+```
+
+
+```{r, echo=FALSE, fig.cap = "**Figure 2**. (Left panel) Clone frequency versus rank. Blue dotted line is set at 1% of clone frequency. (Right panel) Strand bias of reads is shown as log2(strand_bias) versus rank. Largest clone is colored in blue."}
+
+clo.fr.scatter = clone_frequencies_vs_rank_clonesum(clonsum_plotprep)
+strand.b = strandbias_plot(clonsum_plotprep)
+grid.arrange(clo.fr.scatter,strand.b,ncol=2,nrow=1)
+```
+

@@ -1,0 +1,31 @@
+```{r, include=FALSE}
+i = 1
+j = 5
+lineages = lapply(lineage_df$filepath, clonesum_read)
+lineage_res = lapply(lineages, function(x) topClone_analysis_lineage(x, i=i,j=j))
+lineage_res = dplyr::bind_rows(lineage_res)
+```
+
+```{r, include=FALSE}
+clonesums = lapply(panel_df$filepath, clonesum_read)
+clone_res = lapply(clonesums, function(x) topClone_analysis_clonesum(x, i=i,j=j))
+clone_res = dplyr::bind_rows(clone_res)
+```
+
+
+```{r, include=FALSE}
+summary_df = round(dplyr::bind_rows(clone_res, lineage_res), digits =3)
+summary_df$target = c("IGH","IGK_L","IGH_lineage","IGK_L_lineage")
+summary_df = summary_df %>% dplyr::relocate(target)
+colnames(summary_df) <- c('Target Assay', paste0("CF ", i,". clone"), paste0("CF ", j,". clone"), "Ratio")
+```
+
+Frequenzen sind von 0 - 1 angegeben:
+CF = Klonfrequenz
+```{r}
+summary_df %>%
+  kable("html", digits=3) %>%
+  kable_styling(font_size = 15, full_width = FALSE)
+```
+
+

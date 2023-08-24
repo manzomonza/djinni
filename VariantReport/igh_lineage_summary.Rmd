@@ -1,0 +1,18 @@
+
+```{r, include=FALSE}
+filep  = lineage_df$filepath[1]
+filep = lineage_df[which(lineage_df$index == 1),]$filepath
+
+lineage = clonesum_read(filep)
+selection = top25_lineage_selection(lineage)
+
+```
+
+#### Top 25 clones
+```{r}
+selection %>%
+  kable("html", digits=3) %>%
+  kable_styling(font_size = 12)
+```
+
+
