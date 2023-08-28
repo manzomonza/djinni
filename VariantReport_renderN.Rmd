@@ -8,7 +8,8 @@ output:
     toc_float: true
     highlight: zenburn
 params:
-  snv: ""
+  parsed_fp: ""
+  annotation_fp: ""
   output_file: ""
   sample_ID: ""
   lineage_df: ""
