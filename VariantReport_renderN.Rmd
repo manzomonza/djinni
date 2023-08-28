@@ -75,13 +75,7 @@ strand_ratios = dplyr::select(strand_ratios, rowid, gene, contains("FS"), contai
 DT::datatable(strand_ratios)
 ```
 
-## Clinical variant interpretation
-
-```{r}
-DT::datatable(add_interpretation_columns(snv))
-```
-
-
+# Clinical variant interpretation
 
 ```{r, eval=FALSE}
 sel_snv$metric_value = ifelse(sel_snv$QUAL > 10 & abs(sel_snv$read_ratio_Allele) > 1 &abs(sel_snv$read_ratio_Allele) <3, "B_warning",
