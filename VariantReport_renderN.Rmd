@@ -34,7 +34,9 @@ library(tidyverse)
 library(janitor)
 library(VariantReport)
 })
-snv = params$snv
+parsed_fp = params$parsed_fp
+annotation_fp = params$annotation_fp
+
 
 ```
 
@@ -42,11 +44,7 @@ snv = params$snv
 
 ```{r, include=FALSE}
 snv = readr::read_tsv(parsed_fp$parsed_snv)
-#snv = "./testfiles/Y537_B2023.6661_OcaV3_output/parsed_output/parsed_snv.tsv"
-snv = readr::read_tsv(snv)
 snv = VariantAnnotationModules::amino_acid_code_3_to_1(snv)
-
-#clinvar_hits = readr::read_tsv('./testfiles/Y537_B2023.6661_OcaV3_output/annotation_output/annotation_clinvar.tsv')
 clinvar_hits = readr::read_tsv(annotation_fp$clinvar)
 snv$AF = round(snv$AF, digits = 2)
 ```
