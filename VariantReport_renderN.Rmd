@@ -1,5 +1,5 @@
 ---
-title: Pan BCR analysis
+title: NGS report
 author: University Hospital Basel -- Molecular Diagnostic Unit
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
@@ -16,8 +16,12 @@ editor_options:
   chunk_output_type: console
 ---
 
+# Sample info
+
+Here will be the info of the file
+
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, include = TRUE)
 
 # Load libs and data
 suppressPackageStartupMessages({
@@ -28,13 +32,65 @@ library(gridExtra)
 library(data.table)
 library(tidyverse)
 library(janitor)
-library(LymphocyteSeq)
+library(VariantReport)
 })
 snv = params$snv
 
 ```
 
-```{r}
-DT::datatable(snv, escape = FALSE)
+
+
+```{r, include=FALSE}
+snv = readr::read_tsv(parsed_fp$parsed_snv)
+#snv = "./testfiles/Y537_B2023.6661_OcaV3_output/parsed_output/parsed_snv.tsv"
+snv = readr::read_tsv(snv)
+snv = VariantAnnotationModules::amino_acid_code_3_to_1(snv)
+
+#clinvar_hits = readr::read_tsv('./testfiles/Y537_B2023.6661_OcaV3_output/annotation_output/annotation_clinvar.tsv')
+clinvar_hits = readr::read_tsv(annotation_fp$clinvar)
+snv$AF = round(snv$AF, digits = 2)
 ```
 
+# Variant Overview 
+
+```{r}
+DT::datatable(display_variants(snv))
+```
+
+# Technical Quality control
+
+## Standard metrics
+```{r}
+DT::datatable(display_std_metrics(snv))
+```
+
+## Read ratios
+
+```{r, include=FALSE}
+strand_ratios = add_strand_ratios(snv)
+strand_ratios = dplyr::select(strand_ratios, rowid, gene, contains("FS"), contains("ratio"))
+```
+
+```{r}
+DT::datatable(strand_ratios)
+```
+
+## Clinical variant interpretation
+
+```{r}
+DT::datatable(add_interpretation_columns(snv))
+```
+
+
+
+```{r, eval=FALSE}
+sel_snv$metric_value = ifelse(sel_snv$QUAL > 10 & abs(sel_snv$read_ratio_Allele) > 1 &abs(sel_snv$read_ratio_Allele) <3, "B_warning",
+                    ifelse(sel_snv$QUAL > 10 &
+                             abs(sel_snv$read_ratio_Allele) <3 &
+                             abs(sel_snv$read_ratio_Ref) < 3, "A_pass","C_fail"))
+```
+
+```{r, eval=TRUE}
+datadisply = add_interpretation_columns(snv)
+DT::datatable(datadisply, escape = FALSE)
+```
