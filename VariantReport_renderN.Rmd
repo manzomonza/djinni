@@ -1,12 +1,7 @@
 ---
-title: NGS report
 author: University Hospital Basel -- Molecular Diagnostic Unit
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-output:
-  html_document:
-    toc: true
-    toc_float: true
-    highlight: zenburn
+output: html_document
 params:
   parsed_fp: ""
   annotation_fp: ""
@@ -16,10 +11,6 @@ params:
 editor_options: 
   chunk_output_type: console
 ---
-
-# Sample info
-
-Here will be the info of the file
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, include = TRUE)
@@ -37,11 +28,10 @@ library(VariantReport)
 })
 parsed_fp = params$parsed_fp
 annotation_fp = params$annotation_fp
-
-
+sampleName = params$sample_ID
 ```
 
-
+# NGS report `r sampleName`  {.tabset}
 
 ```{r, include=FALSE}
 snv = readr::read_tsv(parsed_fp$parsed_snv)
@@ -50,20 +40,25 @@ clinvar_hits = readr::read_tsv(annotation_fp$clinvar)
 snv$AF = round(snv$AF, digits = 2)
 ```
 
-# Variant Overview 
-
+## Variant Overview {.tabset}
 ```{r}
 DT::datatable(display_variants(snv))
 ```
 
-# Technical Quality control
+<!-- next main tab -->
 
-## Standard metrics
+## Variant Calling {.tabset }
+
+### Quality Control
 ```{r}
 DT::datatable(display_std_metrics(snv))
 ```
 
-## Read ratios
+### Strand ratios
+* FSAF: Flow evaluator Allele forward reads
+* FSAR: Flow evaluator Allele reverse reads
+* FSRF: Flow evaluator Reference forward reads
+* FSRR: Flow evaluator Reference reverse reads
 
 ```{r, include=FALSE}
 strand_ratios = add_strand_ratios(snv)
@@ -74,7 +69,11 @@ strand_ratios = dplyr::select(strand_ratios, rowid, gene, contains("FS"), contai
 DT::datatable(strand_ratios)
 ```
 
-# Clinical variant interpretation
+<!-- next main tab -->
+
+## Interpretation {.tabset}
+
+### Scores
 
 ```{r, eval=FALSE}
 sel_snv$metric_value = ifelse(sel_snv$QUAL > 10 & abs(sel_snv$read_ratio_Allele) > 1 &abs(sel_snv$read_ratio_Allele) <3, "B_warning",
