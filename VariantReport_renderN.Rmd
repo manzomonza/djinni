@@ -18,14 +18,12 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, include = TRUE)
 # Load libs and data
 suppressPackageStartupMessages({
 library(knitr)
-library(kableExtra)
-library(ggplot2)
-library(gridExtra)
-library(data.table)
-library(tidyverse)
 library(janitor)
+library(formattable)
 library(VariantReport)
+library(fontawesome)
 })
+
 parsed_fp = params$parsed_fp
 annotation_fp = params$annotation_fp
 sampleName = params$sample_ID
@@ -42,7 +40,24 @@ snv$AF = round(snv$AF, digits = 2)
 
 ## Variant Overview {.tabset}
 ```{r}
-DT::datatable(display_variants(snv))
+DT::datatable(display_variants(snv),rownames = FALSE,
+              extensions = 'Buttons',
+        options = list(
+          dom = 'Bfrtip',
+          lengthMenu = list(c(5, 15, -1), c('5', '15', 'All')),
+          pageLength = 15,
+          buttons = list(
+            list(
+              extend = "collection",
+              text = 'Show All',
+              action = DT::JS("function ( e, dt, node, config ) {
+                                    dt.page.len(-1);
+                                    dt.ajax.reload();
+                                }")
+            )
+          )
+        )
+        )
 ```
 
 <!-- next main tab -->
@@ -50,8 +65,27 @@ DT::datatable(display_variants(snv))
 ## Variant Calling {.tabset }
 
 ### Quality Control
+
+* Phred > 1000 <div style="display: inline-block; width: 25px; height: 10px; background-color: #3d8c40; border-radius: 10px;"></div>
+* Phred < 100 <div style="display: inline-block; width: 25px; height: 10px; background-color: #ff6347; border-radius: 10px;"></div>
+* 100 < Phred < 1000 <div style="display: inline-block; width: 25px; height: 10px; background-color: #FFA500; border-radius: 10px;"></div>
+
 ```{r}
-DT::datatable(display_std_metrics(snv))
+dissnv = display_std_metrics(snv)
+dissnv = dplyr::rename(dissnv, Phred = QUAL, Coverage = totalDepth)
+
+
+phred_formatter = formattable::formatter("span", 
+                            style = x ~ style("background-color" = ifelse(x > 1000, "#3d8c40",
+                             ifelse(x < 100, "#ff6347", "#FFA500"))))
+
+coverage_formatter = formattable::formatter("span", 
+                            style = x ~ style("background-color" = ifelse(x > 3000, "#3d8c40",
+                                                                          ifelse(1000 < x & x < 3000, "lightgreen",
+                                                                                 ifelse(x < 500, "#ff6347", "#FFA500")))))
+callf = formattable(dissnv, list(Phred = phred_formatter,
+                                 Coverage = coverage_formatter))
+as.datatable(callf,rownames = FALSE,escape = FALSE,options = list(scrollX = TRUE))
 ```
 
 ### Strand ratios
@@ -62,11 +96,11 @@ DT::datatable(display_std_metrics(snv))
 
 ```{r, include=FALSE}
 strand_ratios = add_strand_ratios(snv)
-strand_ratios = dplyr::select(strand_ratios, rowid, gene, contains("FS"), contains("ratio"))
+strand_ratios = dplyr::select(strand_ratios, rowid, gene, abs_delta, contains("ratio"),contains("FS"))
 ```
 
 ```{r}
-DT::datatable(strand_ratios)
+DT::datatable(strand_ratios,rownames = FALSE)
 ```
 
 <!-- next main tab -->
@@ -82,7 +116,41 @@ sel_snv$metric_value = ifelse(sel_snv$QUAL > 10 & abs(sel_snv$read_ratio_Allele)
                              abs(sel_snv$read_ratio_Ref) < 3, "A_pass","C_fail"))
 ```
 
+* cH = cancerHotspot 
 ```{r, eval=TRUE}
 datadisply = add_interpretation_columns(snv)
-DT::datatable(datadisply, escape = FALSE)
+datadisply = dplyr::rename(datadisply, cH_pos_count = cancerHotspot_position_count,
+                                       cH_variant_count = cancerHotspot_variant_count)
+datadisply = dplyr::relocate(datadisply, gnomad_MAF, .after = "Horak_classification")
+
+datadisply$gnomad_MAF = formatC(datadisply$gnomad_MAF, format = "e", digits = 1)
+
+DT::datatable(datadisply, escape = FALSE, rownames = FALSE)
+
 ```
+
+
+```{r, eval=FALSE}
+### Testing
+# m = matrix(
+#   classval, nrow = length(VARIANTS), ncol = 3, byrow = TRUE,
+#   dimnames = list(VARIANTS, classifications)
+# )
+# for (i in seq_len(nrow(m))) {
+#   m[i, ] = sprintf(
+#     '<input type="radio" name="%s" value="%s"/>',
+#     VARIANTS[i], m[i, ]
+#   )
+# }
+#     
+
+
+
+sel_snv = display_std_metrics(snv)
+sel_snv$selection ="<input type='radio' name='row1' value='report'> Report<input type='radio' name='row1' value='artefact'> Artefact<input type='radio' name='row1' value='do-not-report'> Do Not Report'"
+
+DT::datatable(sel_snv, rownames = FALSE, escape = FALSE, callback = JS("table.rows().every(function(i, tab, row)"))
+
+```
+
+
