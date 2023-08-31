@@ -87,7 +87,8 @@ coverage_formatter = formattable::formatter("span",
                                                                                  ifelse(x < 500, "#ff6347", "#FFA500"))), color = "black"))
 callf = formattable(dissnv, list(Phred = phred_formatter,
                                  Coverage = coverage_formatter))
-DT_default(callf)
+as.datatable(callf, rownames = FALSE, escape = FALSE, options = list(lengthMenu = list(c(25, 100, -1), c('25', '100', 'All')),
+  pageLength = -1))
 ```
 
 ### Strand ratios
