@@ -8,23 +8,32 @@ output:
 params:
   parsed_fp: ""
   annotation_fp: ""
-  output_file: ""
+  vcf_info: ""
   sample_ID: ""
-  lineage_df: ""
 editor_options: 
   chunk_output_type: console
 ---
-<style>
-.main-container {
+<head>
+  <style>
+    table.custom-table {
+    font-size: 10px;
+    }
+    table {
+      font-size: 16px;
+    }
+    th, td {
+     font-size: 15px;
+    }
+  
+  .main-container {
     max-width: 940px;
     margin-left: 0;
     margin-right: auto;
-}
-</style>
+      }
+  </style>
+</head>
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, include = TRUE)
-
-
 
 DT_default = function(inputtable){
   dto = DT::datatable(inputtable,rownames = FALSE, escape = FALSE, options = list(lengthMenu = list(c(25, 100, -1), c('25', '100', 'All')),
@@ -40,10 +49,11 @@ library(formattable)
 library(VariantReport)
 library(fontawesome)
 })
-
+#annotation_fp = VariantAnnotationModules::annotation_filepaths('example_output')
 parsed_fp = params$parsed_fp
 annotation_fp = params$annotation_fp
 sampleName = params$sample_ID
+vcf_info = params$vcf_info
 ```
 
 # Analysis Name: `r sampleName`  {.tabset}
@@ -55,11 +65,41 @@ clinvar_hits = readr::read_tsv(annotation_fp$clinvar)
 snv$AF = round(snv$AF, digits = 2)
 ```
 
-## Variant Overview {.tabset}
-```{r}
-DT_default(display_variants(snv))
+## Sample Metadata {.tabset}
+```{r, include=FALSE}
+ir = vcf_info$IonReporter
+sinfo = vcf_info$SampleInfo
+qc = vcf_info$SequencingQC
 
+names(sinfo)
+names(qc)
+names(ir)
 ```
+__VCF:__ `r vcf_info$vcf_path`  
+
+__Sample Info:__  
+&nbsp;&nbsp;&nbsp;&nbsp;Disease: `r sinfo$disease`  
+&nbsp;&nbsp;&nbsp;&nbsp;Tumor cell content (manual): `r sinfo$tumor_cellularity_manual`  
+&nbsp;&nbsp;&nbsp;&nbsp;Tumor cell content (calculated): `r sinfo$tumor_cellularity_calculated`  
+  
+__IonReporter:__  
+&nbsp;&nbsp;&nbsp;&nbsp;Analysis name: `r ir$AnalysisName`  
+&nbsp;&nbsp;&nbsp;&nbsp;Workflow name: `r ir$WorkflowName`  
+&nbsp;&nbsp;&nbsp;&nbsp;Reference: `r ir$reference`  
+&nbsp;&nbsp;&nbsp;&nbsp;Workflow version: `r ir$Workflow_version`  
+&nbsp;&nbsp;&nbsp;&nbsp;Software version: `r ir$Software_version`  
+&nbsp;&nbsp;&nbsp;&nbsp;File date: `r ir$fileDate`  
+&nbsp;&nbsp;&nbsp;&nbsp;File creation time: `r ir$fileUTCtime`  
+
+__SequencingQC__  
+&nbsp;&nbsp;&nbsp;&nbsp;MAPD: `r qc$MAPD`  
+&nbsp;&nbsp;&nbsp;&nbsp;Deamination metric: `r qc$deamination_metric`  
+&nbsp;&nbsp;&nbsp;&nbsp;Total read count: `r qc$total_read_count`    
+&nbsp;&nbsp;&nbsp;&nbsp;Percent aligned reads: `r qc$percent_aligned_reads`  
+&nbsp;&nbsp;&nbsp;&nbsp;Percent non-zero amplicons: `r qc$percent_non_zero_amplicons`  
+&nbsp;&nbsp;&nbsp;&nbsp;Median reads per amplicon: `r qc$median_reads_per_amplicon`  
+
+
 
 <!-- next main tab -->
 
@@ -67,10 +107,23 @@ DT_default(display_variants(snv))
 
 ### Quality Control
 
-* <div style="display: inline-block; width: 25px; height: 10px; background-color: #19A603; border-radius: 10px;"></div> Phred > 3000 
-* <div style="display: inline-block; width: 25px; height: 10px; background-color: #99ff99; border-radius: 10px;"></div> 1000 < Phred < 3000 
-* <div style="display: inline-block; width: 25px; height: 10px; background-color: #ff6347; border-radius: 10px;"></div> Phred < 100 
-* <div style="display: inline-block; width: 25px; height: 10px; background-color: #FFA500; border-radius: 10px;"></div> 100 < Phred < 1000
+```{r, color_info}
+color_col = c('<div style="display: inline-block; width: 32px; height: 16px; background-color: #5bd95b; border-radius: 1px;"></div>',
+              '<div style="display: inline-block; width: 32px; height: 16px; background-color: #99FF99; border-radius: 1px;"></div>',
+              '<div style="display: inline-block; width: 32px; height: 16px; background-color: #FFA500; border-radius: 1px;"></div>',
+              '<div style="display: inline-block; width: 32px; height: 16px; background-color: #ff6347; border-radius: 1px;"></div>')
+
+parameter_df = data.frame(colors = color_col,
+                          Phred = c("> 1000", '', "> 100<br>< 1000","< 100"),
+                          Coverage = c("> 3000", "> 1000<br>< 3000","> 500<br>< 1000","< 500"))
+
+styled_table = kableExtra::kable(parameter_df, format = "html", escape = FALSE, table.attr = 'class="custom-table"')
+styled_table = kableExtra::kable_styling(styled_table, full_width = FALSE, font_size = 10, fixed_thead = TRUE)
+styled_table = kableExtra::column_spec(styled_table, 2:3, width = "100px")  # Adjust the column width 
+
+styled_table
+```
+
 
 ```{r}
 dissnv = display_std_metrics(snv)
@@ -78,12 +131,12 @@ dissnv = dplyr::rename(dissnv, Phred = QUAL, Coverage = totalDepth)
 dissnv$Phred = round(dissnv$Phred, digits = 2)
 
 phred_formatter = formattable::formatter("span",
-                            style = x ~ style("background-color" = ifelse(x > 1000, "#19A603",
+                            style = x ~ style("background-color" = ifelse(x > 1000, "#5bd95b",
                              ifelse(x < 100, "#ff6347", "#FFA500")), color = "black"))
 
 coverage_formatter = formattable::formatter("span",
-                            style = x ~ style("background-color" = ifelse(x > 3000, "#19A603",
-                                                                          ifelse(1000 < x & x < 3000, "lightgreen",
+                            style = x ~ style("background-color" = ifelse(x > 3000, "#5bd95b",
+                                                                          ifelse(1000 < x & x < 3000, "#99FF99",
                                                                                  ifelse(x < 500, "#ff6347", "#FFA500"))), color = "black"))
 callf = formattable(dissnv, list(Phred = phred_formatter,
                                  Coverage = coverage_formatter))
@@ -98,13 +151,46 @@ as.datatable(callf, rownames = FALSE, escape = FALSE, options = list(lengthMenu 
 * FSRR: Flow evaluator Reference reverse reads
 
 ```{r, include=FALSE}
-strand_ratios = add_strand_ratios(snv)
+strand_ratios = VariantReport::add_strand_ratios(snv)
 strand_ratios = dplyr::select(strand_ratios, rowid, gene, abs_delta, contains("ratio"),contains("FS"))
 ```
 
 ```{r}
 DT_default(strand_ratios)
 ```
+
+
+```{r, eval=FALSE}
+library(ggplot2)
+strand_ratios = dplyr::mutate(strand_ratios, 
+                              sum_Allele = FSAF+FSAR,
+                              sum_Ref = FSRF+FSRR,
+                              coverage = FSAF+FSAR+FSRF+FSRR,
+                              type = 'sequencing')
+
+snv |>
+  dplyr::filter(rowid == 1112) |>
+  dplyr::select(rowid, gene,AF, contains("Depth"),contains("FS"))
+
+
+
+norm_ratio_tb = tibble::tibble(log2_read_ratio_Ref = rnorm(100, mean =0, sd = 1),
+                               log2_read_ratio_Alt = log2_read_ratio_Ref+rnorm(100, mean =0, sd = 0.1),
+                               coverage = 10,
+                               abs_delta = rnorm(100, mean = 0 , sd = 0.5),
+                               type = 'synthetic')
+
+plottable = dplyr::bind_rows(strand_ratios, norm_ratio_tb)
+
+gg_plot = ggplot(plottable, aes(x = log2_read_ratio_Ref, y = log2_read_ratio_Alt, 
+                                label = gene, label2 = FSAF,label3 = FSAR, label4=FSRF, label5=FSRR))
+library(plotly)
+gg_plot = gg_plot + geom_point(aes(size = log10(coverage), col = type), alpha = .8) +  geom_abline(intercept = 0, slope = 1) 
+ggplotly(gg_plot)
+
+```
+
+
 
 <!-- next main tab -->
 
@@ -121,18 +207,43 @@ sel_snv$metric_value = ifelse(sel_snv$QUAL > 10 & abs(sel_snv$read_ratio_Allele)
 
 * cH = cancerHotspot 
 ```{r, eval=TRUE}
-datadisply = add_interpretation_columns(snv)
+datadisply = VariantReport::add_interpretation_columns(snv)
 datadisply = dplyr::rename(datadisply, cH_pos_count = cancerHotspot_position_count,
                                        cH_variant_count = cancerHotspot_variant_count)
 datadisply = dplyr::relocate(datadisply, gnomad_MAF, .after = "Horak_classification")
-
 datadisply$gnomad_MAF = formatC(datadisply$gnomad_MAF, format = "e", digits = 1)
+
+
+datadisply = dplyr::select(datadisply, -COSMIC_n_tissue)
+
 ```
 
 
 ```{r, eval=TRUE}
 DT_default(datadisply)
 
+```
+
+### COSMIC Variant-Tissue Heatmap
+```{r}
+cosmic_heat = readr::read_tsv(annotation_fp$COSMIC)
+cosmic_heat = dplyr::select(gene, coding, protein, COSMIC_n_tissue)
+
+#cosmic_heat$tissue = stringr::str_remove_all(cosmic_heat$COSMIC_n_tissue, " \\(\\d+\\)| ")
+cosmic_heat$tissue = stringr::str_remove_all(cosmic_heat$COSMIC_n_tissue, pattern = " ")
+cosmic_heat$tissue = stringr::str_split(cosmic_heat$tissue, pattern = ";")
+cosmic_heat |>
+  tidyr::unnest(cols = tissue) |>
+  tidyr::separate(col = 'tissue',
+                  into = c('tissue','No'), sep = "\\(") |>
+  dplyr::mutate(No = gsub("\\)",'', No)) |>
+  dplyr::filter(!is.na(tissue)) |>
+  dplyr::select(gene, coding, protein, tissue, No) |> 
+  dplyr::mutate(uid = paste0(gene,coding, protein),
+                No = as.numeric(No)) |>
+  ggplot(aes(x = forcats::fct_reorder(tissue, -No), y=forcats::fct_reorder(uid, No))) + 
+  geom_point(aes(size = No)) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
 
