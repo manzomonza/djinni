@@ -33,6 +33,7 @@ editor_options:
   </style>
 </head>
 ```{r setup, include=FALSE}
+
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, include = TRUE)
 
 DT_default = function(inputtable){
@@ -48,7 +49,9 @@ library(janitor)
 library(formattable)
 library(VariantReport)
 library(fontawesome)
+library(ggplot2)
 })
+theme_set(theme_light())
 #annotation_fp = VariantAnnotationModules::annotation_filepaths('example_output')
 parsed_fp = params$parsed_fp
 annotation_fp = params$annotation_fp
@@ -107,24 +110,6 @@ __SequencingQC__
 
 ### Quality Control
 
-```{r, color_info}
-color_col = c('<div style="display: inline-block; width: 32px; height: 16px; background-color: #5bd95b; border-radius: 1px;"></div>',
-              '<div style="display: inline-block; width: 32px; height: 16px; background-color: #99FF99; border-radius: 1px;"></div>',
-              '<div style="display: inline-block; width: 32px; height: 16px; background-color: #FFA500; border-radius: 1px;"></div>',
-              '<div style="display: inline-block; width: 32px; height: 16px; background-color: #ff6347; border-radius: 1px;"></div>')
-
-parameter_df = data.frame(colors = color_col,
-                          Phred = c("> 1000", '', "> 100<br>< 1000","< 100"),
-                          Coverage = c("> 3000", "> 1000<br>< 3000","> 500<br>< 1000","< 500"))
-
-styled_table = kableExtra::kable(parameter_df, format = "html", escape = FALSE, table.attr = 'class="custom-table"')
-styled_table = kableExtra::kable_styling(styled_table, full_width = FALSE, font_size = 10, fixed_thead = TRUE)
-styled_table = kableExtra::column_spec(styled_table, 2:3, width = "100px")  # Adjust the column width 
-
-styled_table
-```
-
-
 ```{r}
 dissnv = display_std_metrics(snv)
 dissnv = dplyr::rename(dissnv, Phred = QUAL, Coverage = totalDepth)
@@ -140,9 +125,36 @@ coverage_formatter = formattable::formatter("span",
                                                                                  ifelse(x < 500, "#ff6347", "#FFA500"))), color = "black"))
 callf = formattable(dissnv, list(Phred = phred_formatter,
                                  Coverage = coverage_formatter))
+
+```
+
+
+
+```{r, color_info}
+color_col = c('<div style="display: inline-block; width: 32px; height: 16px; background-color: #5bd95b; border-radius: 1px;"></div>',
+              '<div style="display: inline-block; width: 32px; height: 16px; background-color: #99FF99; border-radius: 1px;"></div>',
+              '<div style="display: inline-block; width: 32px; height: 16px; background-color: #FFA500; border-radius: 1px;"></div>',
+              '<div style="display: inline-block; width: 32px; height: 16px; background-color: #ff6347; border-radius: 1px;"></div>')
+
+parameter_df = data.frame(colors = color_col,
+                          Phred = c("> 1000", '', "> 100<br>< 1000","< 100"),
+                          Coverage = c("> 3000", "> 1000<br>< 3000","> 500<br>< 1000","< 500"))
+
+styled_table = kableExtra::kable(parameter_df, format = "html", escape = FALSE, table.attr = 'class="custom-table"')
+styled_table = kableExtra::kable_styling(styled_table, full_width = FALSE, font_size = 10, fixed_thead = TRUE)
+styled_table = kableExtra::column_spec(styled_table, 2:3, width = "100px")  # Adjust the column width 
+
+
+```
+
+```{r, two-column,results='asis', echo=FALSE, out.extra=''}
 as.datatable(callf, rownames = FALSE, escape = FALSE, options = list(lengthMenu = list(c(25, 100, -1), c('25', '100', 'All')),
   pageLength = -1))
+styled_table
+
 ```
+
+
 
 ### Strand ratios
 * FSAF: Flow evaluator Allele forward reads
@@ -212,38 +224,35 @@ datadisply = dplyr::rename(datadisply, cH_pos_count = cancerHotspot_position_cou
                                        cH_variant_count = cancerHotspot_variant_count)
 datadisply = dplyr::relocate(datadisply, gnomad_MAF, .after = "Horak_classification")
 datadisply$gnomad_MAF = formatC(datadisply$gnomad_MAF, format = "e", digits = 1)
-
-
-datadisply = dplyr::select(datadisply, -COSMIC_n_tissue)
-
 ```
 
 
 ```{r, eval=TRUE}
 DT_default(datadisply)
-
 ```
 
 ### COSMIC Variant-Tissue Heatmap
-```{r}
+```{r, include=FALSE}
 cosmic_heat = readr::read_tsv(annotation_fp$COSMIC)
-cosmic_heat = dplyr::select(gene, coding, protein, COSMIC_n_tissue)
+cosmic_heat = dplyr::select(cosmic_heat, gene, coding, protein, COSMIC_n_tissue)
 
 #cosmic_heat$tissue = stringr::str_remove_all(cosmic_heat$COSMIC_n_tissue, " \\(\\d+\\)| ")
 cosmic_heat$tissue = stringr::str_remove_all(cosmic_heat$COSMIC_n_tissue, pattern = " ")
 cosmic_heat$tissue = stringr::str_split(cosmic_heat$tissue, pattern = ";")
-cosmic_heat |>
-  tidyr::unnest(cols = tissue) |>
-  tidyr::separate(col = 'tissue',
-                  into = c('tissue','No'), sep = "\\(") |>
-  dplyr::mutate(No = gsub("\\)",'', No)) |>
-  dplyr::filter(!is.na(tissue)) |>
-  dplyr::select(gene, coding, protein, tissue, No) |> 
-  dplyr::mutate(uid = paste0(gene,coding, protein),
-                No = as.numeric(No)) |>
-  ggplot(aes(x = forcats::fct_reorder(tissue, -No), y=forcats::fct_reorder(uid, No))) + 
+cosmic_heat = tidyr::unnest(cosmic_heat,cols = tissue)
+cosmic_heat = tidyr::separate(cosmic_heat,col = 'tissue', into = c('tissue','No'), sep = "\\(")
+cosmic_heat = dplyr::mutate(cosmic_heat, No = gsub("\\)",'', No), No = as.numeric(No))
+cosmic_heat = dplyr::filter(cosmic_heat, !is.na(tissue))
+cosmic_heat = dplyr::select(cosmic_heat,  gene, coding, protein, tissue, No) 
+cosmic_heat = dplyr::mutate(cosmic_heat, uid = paste(gene,coding, protein, sep = "_"))
+
+gg_plot = ggplot(cosmic_heat, aes(x = forcats::fct_reorder(tissue, -No), y=forcats::fct_reorder(uid, No))) + 
   geom_point(aes(size = No)) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+```
+
+```{r, fig.width = 15, fig.height=12, fig.align = "center"}
+gg_plot
 ```
 
 
