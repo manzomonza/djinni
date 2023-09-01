@@ -248,8 +248,14 @@ cosmic_heat = dplyr::mutate(cosmic_heat, uid = paste(gene,coding, protein, sep =
 
 gg_plot = ggplot(cosmic_heat, aes(x = forcats::fct_reorder(tissue, -No), y=forcats::fct_reorder(uid, No))) + 
   geom_point(aes(size = No)) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+  theme(axis.text.x = element_text(color = "black", size = 15, angle = 60, hjust = 1),
+        axis.text.y = element_text(color = "black", size = 15, angle = 0, hjust = 1)) +
+  labs(x = '',
+       y ='')
+
 ```
+
+Plot displaying only variants with any tissue hit in COSMIC database. Size of point indicates observed number of entries per tissue.
 
 ```{r, fig.width = 15, fig.height=12, fig.align = "center"}
 gg_plot
