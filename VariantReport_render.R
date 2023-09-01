@@ -12,5 +12,6 @@ Variant_report_markdown = "/home/ionadmin/github_app/genie/VariantReport_renderN
 rmarkdown::render(Variant_report_markdown,
                   params = list(parsed_fp = parsed_fp,
                                 annotation_fp = annotation_fp,
-                                sample_ID = sample_ID),
+                                sample_ID = sample_ID,
+				vcf_info = vcf_info),
                   output_file = paste0(html_dir, '/VariantReport.html'))
