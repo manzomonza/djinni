@@ -164,7 +164,7 @@ styled_table
 
 ```{r, include=FALSE}
 strand_ratios = VariantReport::add_strand_ratios(snv)
-strand_ratios = dplyr::select(strand_ratios, rowid, gene, abs_delta, contains("ratio"),contains("FS"))
+strand_ratios = dplyr::select(strand_ratios, rowid, gene, abs_delta, contains("ratio", ignore.case = FALSE),contains("FS"))
 ```
 
 ```{r}
@@ -285,4 +285,18 @@ DT::datatable(sel_snv, rownames = FALSE, escape = FALSE, callback = JS("table.ro
 
 ```
 
+<!-- next main tab -->
+
+## CNV {.tabset}
+```{r}
+if(file.exists(parsed_fp$parsed_cnv)){
+  cnv = readr::read_tsv(parsed_fp$parsed_cnv)
+  cnv = dplyr::select(cnv, seqnames, gene, RAW_CN, contains("perc"))
+  cnv = dplyr::rename(cnv, Chr = seqnames)
+  DT::datatable(cnv)
+}else{
+  print("No CNVs")
+}
+
+```
 
