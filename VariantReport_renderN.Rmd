@@ -52,7 +52,8 @@ library(fontawesome)
 library(ggplot2)
 })
 theme_set(theme_light())
-#annotation_fp = VariantAnnotationModules::annotation_filepaths('example_output')
+# annotation_fp = VariantAnnotationModules::annotation_filepaths('example_output')
+# parsed_fp = VCFparse::parsed_filepaths('example_output')
 parsed_fp = params$parsed_fp
 annotation_fp = params$annotation_fp
 sampleName = params$sample_ID
@@ -237,12 +238,14 @@ cosmic_heat = readr::read_tsv(annotation_fp$COSMIC)
 cosmic_heat = dplyr::select(cosmic_heat, gene, coding, protein, COSMIC_n_tissue)
 
 #cosmic_heat$tissue = stringr::str_remove_all(cosmic_heat$COSMIC_n_tissue, " \\(\\d+\\)| ")
-cosmic_heat$tissue = stringr::str_remove_all(cosmic_heat$COSMIC_n_tissue, pattern = " ")
-cosmic_heat$tissue = stringr::str_split(cosmic_heat$tissue, pattern = ";")
+cosmic_heat$tissue = stringr::str_split(cosmic_heat$COSMIC_n_tissue, pattern = ";")
 cosmic_heat = tidyr::unnest(cosmic_heat,cols = tissue)
-cosmic_heat = tidyr::separate(cosmic_heat,col = 'tissue', into = c('tissue','No'), sep = "\\(")
-cosmic_heat = dplyr::mutate(cosmic_heat, No = gsub("\\)",'', No), No = as.numeric(No))
 cosmic_heat = dplyr::filter(cosmic_heat, !is.na(tissue))
+cosmic_heat = tidyr::separate(cosmic_heat,col = 'tissue', into = c('tissue','No'), sep = " \\(")
+cosmic_heat = dplyr::mutate(cosmic_heat, No = gsub("\\)",'', No), No = as.numeric(No))
+
+#cosmic_heat$tissue = stringr::str_remove_all(cosmic_heat$tissue, pattern = " ")
+
 cosmic_heat = dplyr::select(cosmic_heat,  gene, coding, protein, tissue, No) 
 cosmic_heat = dplyr::mutate(cosmic_heat, uid = paste(gene,coding, protein, sep = "_"))
 
