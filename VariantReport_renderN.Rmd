@@ -34,7 +34,7 @@ editor_options:
 </head>
 ```{r setup, include=FALSE}
 
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, include = TRUE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, include = TRUE, warning = FALSE)
 
 DT_default = function(inputtable){
   dto = DT::datatable(inputtable,rownames = FALSE, escape = FALSE, options = list(lengthMenu = list(c(25, 100, -1), c('25', '100', 'All')),
@@ -218,6 +218,9 @@ sel_snv$metric_value = ifelse(sel_snv$QUAL > 10 & abs(sel_snv$read_ratio_Allele)
                              abs(sel_snv$read_ratio_Ref) < 3, "A_pass","C_fail"))
 ```
 
+![Overview of scoring algorithm. Functional Data and Computational Evidence are currently not being used for the scoring.](images/HorakScore.jpg)
+
+
 * cH = cancerHotspot 
 ```{r, eval=TRUE}
 datadisply = VariantReport::add_interpretation_columns(snv)
@@ -235,6 +238,8 @@ if(!is.na(all(datadisply$gnomad_MAF))){
 ```{r, eval=TRUE}
 DT_default(datadisply)
 ```
+
+* Citation: https://pubmed.ncbi.nlm.nih.gov/35101336/
 
 ### COSMIC Variant-Tissue Heatmap
 ```{r, include=FALSE}
