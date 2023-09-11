@@ -224,7 +224,11 @@ datadisply = VariantReport::add_interpretation_columns(snv)
 datadisply = dplyr::rename(datadisply, cH_pos_count = cancerHotspot_position_count,
                                        cH_variant_count = cancerHotspot_variant_count)
 datadisply = dplyr::relocate(datadisply, gnomad_MAF, .after = "Horak_classification")
-datadisply$gnomad_MAF = formatC(datadisply$gnomad_MAF, format = "e", digits = 1)
+
+
+if(!is.na(all(datadisply$gnomad_MAF))){
+  datadisply$gnomad_MAF = formatC(datadisply$gnomad_MAF, format = "e", digits = 1)
+}
 ```
 
 
@@ -294,7 +298,7 @@ DT::datatable(sel_snv, rownames = FALSE, escape = FALSE, callback = JS("table.ro
 ```{r}
 if(file.exists(parsed_fp$parsed_cnv)){
   cnv = readr::read_tsv(parsed_fp$parsed_cnv)
-  cnv = dplyr::select(cnv, seqnames, gene, RAW_CN, contains("perc"))
+  cnv = dplyr::select(cnv, seqnames, gene, NUMTILES, RAW_CN, contains("perc"))
   cnv = dplyr::rename(cnv, Chr = seqnames)
   DT::datatable(cnv)
 }else{
