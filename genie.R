@@ -47,6 +47,7 @@ if(nrow(vcf) > 0){
 ## remove double columns
 vcf =  dplyr::select(vcf, -contains(".1"))
 vcf =  dplyr::select(vcf, -FUNC)
+vcf = dplyr::filter(vcf, alt == origAlt & ref == origRef)
 
 # Generate tables
 vcf$variant_type = gsub("[^[:alnum:] ]", "", vcf$variant_type)
