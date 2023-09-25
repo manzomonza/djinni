@@ -52,8 +52,8 @@ library(fontawesome)
 library(ggplot2)
 })
 theme_set(theme_light())
-# annotation_fp = VariantAnnotationModules::annotation_filepaths('example_output')
-# parsed_fp = VCFparse::parsed_filepaths('example_output')
+#annotation_fp = VariantAnnotationModules::annotation_filepaths('example_output')
+#parsed_fp = VCFparse::parsed_filepaths('example_output')
 parsed_fp = params$parsed_fp
 annotation_fp = params$annotation_fp
 sampleName = params$sample_ID
@@ -64,6 +64,7 @@ vcf_info = params$vcf_info
 
 ```{r, include=FALSE}
 snv = readr::read_tsv(parsed_fp$parsed_snv)
+complete = readr::read_tsv(parsed_fp$parsed_complete)
 snv = VariantAnnotationModules::amino_acid_code_3_to_1(snv)
 clinvar_hits = readr::read_tsv(annotation_fp$clinvar)
 snv$AF = round(snv$AF, digits = 2)
@@ -124,8 +125,13 @@ coverage_formatter = formattable::formatter("span",
                             style = x ~ style("background-color" = ifelse(x > 3000, "#5bd95b",
                                                                           ifelse(1000 < x & x < 3000, "#99FF99",
                                                                                  ifelse(x < 500, "#ff6347", "#FFA500"))), color = "black"))
+homlen_formatter = formattable::formatter("span",
+                            style = x ~ style("background-color" = ifelse(x > 3000, "#5bd95b",
+                                                                          ifelse(1000 < x & x < 3000, "#99FF99",
+                                                                                 ifelse(x < 500, "#ff6347", "#FFA500"))), color = "black"))
 callf = formattable(dissnv, list(Phred = phred_formatter,
-                                 Coverage = coverage_formatter))
+                                 Coverage = coverage_formatter,
+                                 Homopolymer_length = homlen_formatter))
 
 ```
 
@@ -154,8 +160,6 @@ as.datatable(callf, rownames = FALSE, escape = FALSE, options = list(lengthMenu 
 styled_table
 
 ```
-
-
 
 ### Strand ratios
 * FSAF: Flow evaluator Allele forward reads
@@ -218,7 +222,7 @@ sel_snv$metric_value = ifelse(sel_snv$QUAL > 10 & abs(sel_snv$read_ratio_Allele)
                              abs(sel_snv$read_ratio_Ref) < 3, "A_pass","C_fail"))
 ```
 
-![Overview of scoring algorithm. Functional Data and Computational Evidence are currently not being used for the scoring.](images/HorakScore.jpg)
+![Overview of scoring algorithm. Functional Data and Computational Evidence are currently not being used for the scoring. Citation: https://pubmed.ncbi.nlm.nih.gov/35101336/](images/HorakScore.jpg)
 
 
 * cH = cancerHotspot 
@@ -227,7 +231,6 @@ datadisply = VariantReport::add_interpretation_columns(snv)
 datadisply = dplyr::rename(datadisply, cH_pos_count = cancerHotspot_position_count,
                                        cH_variant_count = cancerHotspot_variant_count)
 datadisply = dplyr::relocate(datadisply, gnomad_MAF, .after = "Horak_classification")
-
 
 if(!is.na(all(datadisply$gnomad_MAF))){
   datadisply$gnomad_MAF = formatC(datadisply$gnomad_MAF, format = "e", digits = 1)
@@ -239,7 +242,6 @@ if(!is.na(all(datadisply$gnomad_MAF))){
 DT_default(datadisply)
 ```
 
-* Citation: https://pubmed.ncbi.nlm.nih.gov/35101336/
 
 ### COSMIC Variant-Tissue Heatmap
 ```{r, include=FALSE}
