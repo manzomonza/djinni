@@ -125,13 +125,13 @@ coverage_formatter = formattable::formatter("span",
                             style = x ~ style("background-color" = ifelse(x > 3000, "#5bd95b",
                                                                           ifelse(1000 < x & x < 3000, "#99FF99",
                                                                                  ifelse(x < 500, "#ff6347", "#FFA500"))), color = "black"))
-homlen_formatter = formattable::formatter("span",
-                            style = x ~ style("background-color" = ifelse(x > 3000, "#5bd95b",
-                                                                          ifelse(1000 < x & x < 3000, "#99FF99",
-                                                                                 ifelse(x < 500, "#ff6347", "#FFA500"))), color = "black"))
+# homlen_formatter = formattable::formatter("span",
+#                            style = x ~ style("background-color" = ifelse(x > 3000, "#5bd95b",
+#                                                                          ifelse(1000 < x & x < 3000, "#99FF99",
+#                                                                                 ifelse(x < 500, "#ff6347", "#FFA500"))), color = "black"))
 callf = formattable(dissnv, list(Phred = phred_formatter,
-                                 Coverage = coverage_formatter,
-                                 Homopolymer_length = homlen_formatter))
+                                 Coverage = coverage_formatter))
+#                                 Homopolymer_length = homlen_formatter))
 
 ```
 
