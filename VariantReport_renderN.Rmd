@@ -314,3 +314,28 @@ if(file.exists(parsed_fp$parsed_cnv)){
 
 ```
 
+
+<!-- next main tab -->
+## Gene Annotation modules {.tabset}
+### MP Variant Interpretations
+```{r}
+if(file.exists(mpv_filepath)){
+  mpvs = readr::read_tsv(mpv_filepath)
+  DT::datatable(mpvs)
+}else{
+  print("No MP Variant Interpretation table entries")
+}
+```
+
+<!-- next main tab -->
+
+
+### BRAF Variant Class
+```{r}
+if(file.exists(mpv_filepath)){
+  mpvs = readr::read_tsv(mpv_filepath)
+  DT::datatable(mpvs)
+}else{
+  print("No MP Variant Interpretation table entries")
+}
+```
