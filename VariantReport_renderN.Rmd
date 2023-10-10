@@ -332,9 +332,9 @@ if(file.exists(mpv_filepath)){
 
 ### BRAF Variant Class
 ```{r}
-if(file.exists(mpv_filepath)){
-  mpvs = readr::read_tsv(mpv_filepath)
-  DT::datatable(mpvs)
+if(file.exists(braf_class)){
+  braf_class = readr::read_tsv(braf_class)
+  DT::datatable(braf_class)
 }else{
   print("No MP Variant Interpretation table entries")
 }
