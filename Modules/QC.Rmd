@@ -1,0 +1,43 @@
+```{r, "QC"}
+dissnv = display_std_metrics(snv)
+dissnv = dplyr::rename(dissnv, Phred = QUAL, Coverage = totalDepth)
+dissnv$Phred = round(dissnv$Phred, digits = 2)
+
+phred_formatter = formattable::formatter("span",
+                            style = x ~ style("background-color" = ifelse(x > 1000, "#5bd95b",
+                             ifelse(x < 100, "#ff6347", "#FFA500")), color = "black"))
+
+coverage_formatter = formattable::formatter("span",
+                            style = x ~ style("background-color" = ifelse(x > 3000, "#5bd95b",
+                                                                          ifelse(1000 < x & x < 3000, "#99FF99",
+                                                                                 ifelse(x < 500, "#ff6347", "#FFA500"))), color = "black"))
+# homlen_formatter = formattable::formatter("span",
+#                            style = x ~ style("background-color" = ifelse(x > 3000, "#5bd95b",
+#                                                                          ifelse(1000 < x & x < 3000, "#99FF99",
+#                                                                                 ifelse(x < 500, "#ff6347", "#FFA500"))), color = "black"))
+callf = formattable(dissnv, list(Phred = phred_formatter,
+                                 Coverage = coverage_formatter))
+#                                 Homopolymer_length = homlen_formatter))
+```
+
+
+```{r, color_info}
+color_col = c('<div style="display: inline-block; width: 32px; height: 16px; background-color: #5bd95b; border-radius: 1px;"></div>',
+              '<div style="display: inline-block; width: 32px; height: 16px; background-color: #99FF99; border-radius: 1px;"></div>',
+              '<div style="display: inline-block; width: 32px; height: 16px; background-color: #FFA500; border-radius: 1px;"></div>',
+              '<div style="display: inline-block; width: 32px; height: 16px; background-color: #ff6347; border-radius: 1px;"></div>')
+
+parameter_df = data.frame(colors = color_col,
+                          Phred = c("> 1000", '', "> 100<br>< 1000","< 100"),
+                          Coverage = c("> 3000", "> 1000<br>< 3000","> 500<br>< 1000","< 500"))
+
+styled_table = kableExtra::kable(parameter_df, format = "html", escape = FALSE, table.attr = 'class="custom-table"')
+styled_table = kableExtra::kable_styling(styled_table, full_width = FALSE, font_size = 10, fixed_thead = TRUE)
+styled_table = kableExtra::column_spec(styled_table, 2:3, width = "100px")  # Adjust the column width 
+```
+
+```{r, two-column,results='asis', echo=FALSE, out.extra=''}
+as.datatable(callf, rownames = FALSE, escape = FALSE, options = list(lengthMenu = list(c(25, 100, -1), c('25', '100', 'All')),
+  pageLength = -1))
+styled_table
+```
