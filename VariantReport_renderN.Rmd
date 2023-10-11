@@ -73,11 +73,9 @@ snv$AF = round(snv$AF, digits = 2)
 ```
 
 ## Sample Metadata {.tabset}
-```{r, include=FALSE, child='/home/ionadmin/github_app/genie/Modules/sample_metadata.Rmd')}
+```{r, include=FALSE, child='/home/ionadmin/github_app/genie/Modules/sample_metadata.Rmd'}
 
 ```
-
-
 
 
 <!-- next main tab -->
@@ -233,9 +231,15 @@ DT::datatable(sel_snv, rownames = FALSE, escape = FALSE, callback = JS("table.ro
 <!-- next main tab -->
 
 ## CNV {.tabset}
-```{r}
-source("")
-
+```{r, 'CNV'}
+if(file.exists(parsed_fp$parsed_cnv)){
+  cnv = readr::read_tsv(parsed_fp$parsed_cnv)
+  cnv = dplyr::select(cnv, seqnames, gene, NUMTILES, RAW_CN, contains("perc"))
+  cnv = dplyr::rename(cnv, Chr = seqnames)
+  DT::datatable(cnv)
+}else{
+  print("No CNVs")
+}
 ```
 
 
