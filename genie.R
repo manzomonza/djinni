@@ -6,7 +6,7 @@ library('VariantAnnotationModules')
 call_AnnotationModules = "/home/ionadmin/github_app/VariantAnnotationModules/call_AnnotationModules.R"
 call_VCFparse = "/home/ionadmin/github_app/VCFparse/call_VCFparse.R"
 
-#source("/home/ionadmin/github_app/genie/NGSannotation_config.R")
+source("/home/ionadmin/github_app/genie/NGSannotation_config.R")
 
 analysis_output_dir = function(vcfpath){
   vcf_meta = VCFparse::aggregate_META_information(vcf_comment_section(vcfpath))

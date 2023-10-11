@@ -219,8 +219,6 @@ gg_plot
 # }
 #     
 
-
-
 sel_snv = display_std_metrics(snv)
 sel_snv$selection ="<input type='radio' name='row1' value='report'> Report<input type='radio' name='row1' value='artefact'> Artefact<input type='radio' name='row1' value='do-not-report'> Do Not Report'"
 
@@ -267,3 +265,15 @@ if(file.exists(braf_class)){
   print("No BRAF variant entries")
 }
 ```
+
+
+### BRAF Variant Class
+```{r}
+if(file.exists(HRRgenes)){
+  HRRgenes = readr::read_tsv(HRRgenes)
+  DT::datatable(HRRgenes)
+}else{
+  print("No HRR genes detected")
+}
+```
+
