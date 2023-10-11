@@ -267,7 +267,7 @@ if(file.exists(braf_class)){
 ```
 
 
-### BRAF Variant Class
+### HRR genes
 ```{r}
 if(file.exists(HRRgenes)){
   HRRgenes = readr::read_tsv(HRRgenes)
