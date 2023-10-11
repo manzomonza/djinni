@@ -151,8 +151,6 @@ sel_snv$metric_value = ifelse(sel_snv$QUAL > 10 & abs(sel_snv$read_ratio_Allele)
                              abs(sel_snv$read_ratio_Ref) < 3, "A_pass","C_fail"))
 ```
 
-![Overview of scoring algorithm. Functional Data and Computational Evidence are currently not being used for the scoring. Citation: https://pubmed.ncbi.nlm.nih.gov/35101336/](images/HorakScore.jpg)
-
 
 * cH = cancerHotspot 
 ```{r, eval=TRUE}
@@ -171,6 +169,7 @@ if(!is.na(all(datadisply$gnomad_MAF))){
 DT_default(datadisply)
 ```
 
+![Overview of scoring algorithm. Functional Data and Computational Evidence are currently not being used for the scoring. Citation: https://pubmed.ncbi.nlm.nih.gov/35101336/](images/HorakScore.jpg)
 
 ### COSMIC Variant-Tissue Heatmap
 ```{r, include=FALSE}

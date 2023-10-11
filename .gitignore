@@ -1,3 +1,6 @@
+testfiles/*
+temp/*
+testfiles/*
 .DS_Store
 .Rproj.user
 .Rhistory
