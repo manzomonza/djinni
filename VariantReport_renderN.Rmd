@@ -73,7 +73,7 @@ snv$AF = round(snv$AF, digits = 2)
 ```
 
 ## Sample Metadata {.tabset}
-```{r, include=FALSE, child="sample_metadata.Rmd'}
+```{r, include=FALSE, child='/home/ionadmin/github_app/genie/Modules/sample_metadata.Rmd')}
 
 ```
 
@@ -86,12 +86,10 @@ snv$AF = round(snv$AF, digits = 2)
 
 ### Quality Control
 
-```{r, child="QC.Rmd'}
+```{r, child='/home/ionadmin/github_app/genie/Modules/QC.Rmd'}
 
 
 ```
-
-
 
 
 ### Strand ratios
