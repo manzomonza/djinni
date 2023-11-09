@@ -151,7 +151,6 @@ sel_snv$metric_value = ifelse(sel_snv$QUAL > 10 & abs(sel_snv$read_ratio_Allele)
                              abs(sel_snv$read_ratio_Ref) < 3, "A_pass","C_fail"))
 ```
 
-![Overview of scoring algorithm. Functional Data and Computational Evidence are currently not being used for the scoring. Citation: https://pubmed.ncbi.nlm.nih.gov/35101336/](images/HorakScore.jpg)
 
 
 * cH = cancerHotspot 
@@ -171,6 +170,7 @@ if(!is.na(all(datadisply$gnomad_MAF))){
 DT_default(datadisply)
 ```
 
+![Overview of scoring algorithm. Functional Data and Computational Evidence are currently not being used for the scoring. Citation: https://pubmed.ncbi.nlm.nih.gov/35101336/](images/HorakScore.jpg)
 
 ### COSMIC Variant-Tissue Heatmap
 ```{r, include=FALSE}
@@ -229,10 +229,16 @@ DT::datatable(sel_snv, rownames = FALSE, escape = FALSE, callback = JS("table.ro
 <!-- next main tab -->
 
 ## CNV {.tabset}
+* **cnv_effect**: Derived from OncoKB 2019 table with matching gene and alteration.  
+* **TSG_cnv**: Column indicates if CNV loss occurs in tumor suppressor gene.
+
+
 ```{r, 'CNV'}
+CNV_LUT = googlesheets4::read_sheet(cnv_onco)
 if(file.exists(parsed_fp$parsed_cnv)){
   cnv = readr::read_tsv(parsed_fp$parsed_cnv)
   cnv = dplyr::select(cnv, seqnames, gene, NUMTILES, RAW_CN, contains("perc"))
+  cnv = annotate_cnv(cnv_table = cnv, cnv_lut = CNV_LUT, tsg_list = TSG_LENGTHS)
   cnv = dplyr::rename(cnv, Chr = seqnames)
   DT::datatable(cnv)
 }else{
@@ -269,8 +275,8 @@ if(file.exists(braf_class)){
 
 ### HRR genes
 ```{r}
-if(file.exists(HRRgenes)){
-  HRRgenes = readr::read_tsv(HRRgenes)
+if(file.exists(HRRgenepath)){
+  HRRgenes = readr::read_tsv(HRRgenepath)
   DT::datatable(HRRgenes)
 }else{
   print("No HRR genes detected")
