@@ -58,6 +58,8 @@ parsed_fp = params$parsed_fp
 annotation_fp = params$annotation_fp
 sampleName = params$sample_ID
 vcf_info = params$vcf_info
+
+modules= '/home/ionadmin/github_app/genie/Modules/'
 ```
 
 # Analysis Name: `r sampleName`  {.tabset}
@@ -71,39 +73,9 @@ snv$AF = round(snv$AF, digits = 2)
 ```
 
 ## Sample Metadata {.tabset}
-```{r, include=FALSE}
-ir = vcf_info$IonReporter
-sinfo = vcf_info$SampleInfo
-qc = vcf_info$SequencingQC
+```{r, include=FALSE, child='/home/ionadmin/github_app/genie/Modules/sample_metadata.Rmd'}
 
-names(sinfo)
-names(qc)
-names(ir)
 ```
-__VCF:__ `r vcf_info$vcf_path`  
-
-__Sample Info:__  
-&nbsp;&nbsp;&nbsp;&nbsp;Disease: `r sinfo$disease`  
-&nbsp;&nbsp;&nbsp;&nbsp;Tumor cell content (manual): `r sinfo$tumor_cellularity_manual`  
-&nbsp;&nbsp;&nbsp;&nbsp;Tumor cell content (calculated): `r sinfo$tumor_cellularity_calculated`  
-  
-__IonReporter:__  
-&nbsp;&nbsp;&nbsp;&nbsp;Analysis name: `r ir$AnalysisName`  
-&nbsp;&nbsp;&nbsp;&nbsp;Workflow name: `r ir$WorkflowName`  
-&nbsp;&nbsp;&nbsp;&nbsp;Reference: `r ir$reference`  
-&nbsp;&nbsp;&nbsp;&nbsp;Workflow version: `r ir$Workflow_version`  
-&nbsp;&nbsp;&nbsp;&nbsp;Software version: `r ir$Software_version`  
-&nbsp;&nbsp;&nbsp;&nbsp;File date: `r ir$fileDate`  
-&nbsp;&nbsp;&nbsp;&nbsp;File creation time: `r ir$fileUTCtime`  
-
-__SequencingQC__  
-&nbsp;&nbsp;&nbsp;&nbsp;MAPD: `r qc$MAPD`  
-&nbsp;&nbsp;&nbsp;&nbsp;Deamination metric: `r qc$deamination_metric`  
-&nbsp;&nbsp;&nbsp;&nbsp;Total read count: `r qc$total_read_count`    
-&nbsp;&nbsp;&nbsp;&nbsp;Percent aligned reads: `r qc$percent_aligned_reads`  
-&nbsp;&nbsp;&nbsp;&nbsp;Percent non-zero amplicons: `r qc$percent_non_zero_amplicons`  
-&nbsp;&nbsp;&nbsp;&nbsp;Median reads per amplicon: `r qc$median_reads_per_amplicon`  
-
 
 
 <!-- next main tab -->
@@ -112,54 +84,11 @@ __SequencingQC__
 
 ### Quality Control
 
-```{r}
-dissnv = display_std_metrics(snv)
-dissnv = dplyr::rename(dissnv, Phred = QUAL, Coverage = totalDepth)
-dissnv$Phred = round(dissnv$Phred, digits = 2)
-
-phred_formatter = formattable::formatter("span",
-                            style = x ~ style("background-color" = ifelse(x > 1000, "#5bd95b",
-                             ifelse(x < 100, "#ff6347", "#FFA500")), color = "black"))
-
-coverage_formatter = formattable::formatter("span",
-                            style = x ~ style("background-color" = ifelse(x > 3000, "#5bd95b",
-                                                                          ifelse(1000 < x & x < 3000, "#99FF99",
-                                                                                 ifelse(x < 500, "#ff6347", "#FFA500"))), color = "black"))
-# homlen_formatter = formattable::formatter("span",
-#                            style = x ~ style("background-color" = ifelse(x > 3000, "#5bd95b",
-#                                                                          ifelse(1000 < x & x < 3000, "#99FF99",
-#                                                                                 ifelse(x < 500, "#ff6347", "#FFA500"))), color = "black"))
-callf = formattable(dissnv, list(Phred = phred_formatter,
-                                 Coverage = coverage_formatter))
-#                                 Homopolymer_length = homlen_formatter))
-
-```
-
-
-
-```{r, color_info}
-color_col = c('<div style="display: inline-block; width: 32px; height: 16px; background-color: #5bd95b; border-radius: 1px;"></div>',
-              '<div style="display: inline-block; width: 32px; height: 16px; background-color: #99FF99; border-radius: 1px;"></div>',
-              '<div style="display: inline-block; width: 32px; height: 16px; background-color: #FFA500; border-radius: 1px;"></div>',
-              '<div style="display: inline-block; width: 32px; height: 16px; background-color: #ff6347; border-radius: 1px;"></div>')
-
-parameter_df = data.frame(colors = color_col,
-                          Phred = c("> 1000", '', "> 100<br>< 1000","< 100"),
-                          Coverage = c("> 3000", "> 1000<br>< 3000","> 500<br>< 1000","< 500"))
-
-styled_table = kableExtra::kable(parameter_df, format = "html", escape = FALSE, table.attr = 'class="custom-table"')
-styled_table = kableExtra::kable_styling(styled_table, full_width = FALSE, font_size = 10, fixed_thead = TRUE)
-styled_table = kableExtra::column_spec(styled_table, 2:3, width = "100px")  # Adjust the column width 
+```{r, child='/home/ionadmin/github_app/genie/Modules/QC.Rmd'}
 
 
 ```
 
-```{r, two-column,results='asis', echo=FALSE, out.extra=''}
-as.datatable(callf, rownames = FALSE, escape = FALSE, options = list(lengthMenu = list(c(25, 100, -1), c('25', '100', 'All')),
-  pageLength = -1))
-styled_table
-
-```
 
 ### Strand ratios
 * FSAF: Flow evaluator Allele forward reads
@@ -222,7 +151,6 @@ sel_snv$metric_value = ifelse(sel_snv$QUAL > 10 & abs(sel_snv$read_ratio_Allele)
                              abs(sel_snv$read_ratio_Ref) < 3, "A_pass","C_fail"))
 ```
 
-![Overview of scoring algorithm. Functional Data and Computational Evidence are currently not being used for the scoring. Citation: https://pubmed.ncbi.nlm.nih.gov/35101336/](images/HorakScore.jpg)
 
 
 * cH = cancerHotspot 
@@ -242,6 +170,7 @@ if(!is.na(all(datadisply$gnomad_MAF))){
 DT_default(datadisply)
 ```
 
+![Overview of scoring algorithm. Functional Data and Computational Evidence are currently not being used for the scoring. Citation: https://pubmed.ncbi.nlm.nih.gov/35101336/](images/HorakScore.jpg)
 
 ### COSMIC Variant-Tissue Heatmap
 ```{r, include=FALSE}
@@ -290,8 +219,6 @@ gg_plot
 # }
 #     
 
-
-
 sel_snv = display_std_metrics(snv)
 sel_snv$selection ="<input type='radio' name='row1' value='report'> Report<input type='radio' name='row1' value='artefact'> Artefact<input type='radio' name='row1' value='do-not-report'> Do Not Report'"
 
@@ -302,16 +229,21 @@ DT::datatable(sel_snv, rownames = FALSE, escape = FALSE, callback = JS("table.ro
 <!-- next main tab -->
 
 ## CNV {.tabset}
-```{r}
+* **cnv_effect**: Derived from OncoKB 2019 table with matching gene and alteration.  
+* **TSG_cnv**: Column indicates if CNV loss occurs in tumor suppressor gene.
+
+
+```{r, 'CNV'}
+CNV_LUT = googlesheets4::read_sheet(cnv_onco)
 if(file.exists(parsed_fp$parsed_cnv)){
   cnv = readr::read_tsv(parsed_fp$parsed_cnv)
   cnv = dplyr::select(cnv, seqnames, gene, NUMTILES, RAW_CN, contains("perc"))
+  cnv = annotate_cnv(cnv_table = cnv, cnv_lut = CNV_LUT, tsg_list = TSG_LENGTHS)
   cnv = dplyr::rename(cnv, Chr = seqnames)
   DT::datatable(cnv)
 }else{
   print("No CNVs")
 }
-
 ```
 
 
@@ -336,6 +268,18 @@ if(file.exists(braf_class)){
   braf_class = readr::read_tsv(braf_class)
   DT::datatable(braf_class)
 }else{
-  print("No MP Variant Interpretation table entries")
+  print("No BRAF variant entries")
 }
 ```
+
+
+### HRR genes
+```{r}
+if(file.exists(HRRgenepath)){
+  HRRgenes = readr::read_tsv(HRRgenepath)
+  DT::datatable(HRRgenes)
+}else{
+  print("No HRR genes detected")
+}
+```
+

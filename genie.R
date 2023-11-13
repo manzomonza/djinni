@@ -6,7 +6,7 @@ library('VariantAnnotationModules')
 call_AnnotationModules = "/home/ionadmin/github_app/VariantAnnotationModules/call_AnnotationModules.R"
 call_VCFparse = "/home/ionadmin/github_app/VCFparse/call_VCFparse.R"
 
-source("/home/ionadmin/github_app/genie/NGSannotation_config.R")
+source("/home/ionadmin/github_app/genie/configs/MainConfig.R")
 
 analysis_output_dir = function(vcfpath){
   vcf_meta = VCFparse::aggregate_META_information(vcf_comment_section(vcfpath))
@@ -48,7 +48,7 @@ if(nrow(vcf) > 0){
 vcf =  dplyr::select(vcf, -contains(".1"))
 vcf =  dplyr::select(vcf, -FUNC)
 vcf = dplyr::filter(vcf, alt == origAlt & ref == origRef | alt == "<CNV>")
-
+vcf = dplyr::filter(vcf, AF >= 0.01| alt == "<CNV>")
 # Generate tables
 vcf$variant_type = gsub("[^[:alnum:] ]", "", vcf$variant_type)
 vcf$protein = gsub("\\[|\\]", "", vcf$protein)

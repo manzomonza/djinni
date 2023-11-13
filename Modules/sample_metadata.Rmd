@@ -1,0 +1,33 @@
+```{r, metadata}
+ir = vcf_info$IonReporter
+sinfo = vcf_info$SampleInfo
+qc = vcf_info$SequencingQC
+
+names(sinfo)
+names(qc)
+names(ir)
+```
+
+__VCF:__ `r vcf_info$vcf_path`  
+
+__Sample Info:__  
+&nbsp;&nbsp;&nbsp;&nbsp;Disease: `r sinfo$disease`  
+&nbsp;&nbsp;&nbsp;&nbsp;Tumor cell content (manual): `r sinfo$tumor_cellularity_manual`  
+&nbsp;&nbsp;&nbsp;&nbsp;Tumor cell content (calculated): `r sinfo$tumor_cellularity_calculated`  
+  
+__IonReporter:__  
+&nbsp;&nbsp;&nbsp;&nbsp;Analysis name: `r ir$AnalysisName`  
+&nbsp;&nbsp;&nbsp;&nbsp;Workflow name: `r ir$WorkflowName`  
+&nbsp;&nbsp;&nbsp;&nbsp;Reference: `r ir$reference`  
+&nbsp;&nbsp;&nbsp;&nbsp;Workflow version: `r ir$Workflow_version`  
+&nbsp;&nbsp;&nbsp;&nbsp;Software version: `r ir$Software_version`  
+&nbsp;&nbsp;&nbsp;&nbsp;File date: `r ir$fileDate`  
+&nbsp;&nbsp;&nbsp;&nbsp;File creation time: `r ir$fileUTCtime`  
+
+__SequencingQC__  
+&nbsp;&nbsp;&nbsp;&nbsp;MAPD: `r qc$MAPD`  
+&nbsp;&nbsp;&nbsp;&nbsp;Deamination metric: `r qc$deamination_metric`  
+&nbsp;&nbsp;&nbsp;&nbsp;Total read count: `r qc$total_read_count`    
+&nbsp;&nbsp;&nbsp;&nbsp;Percent aligned reads: `r qc$percent_aligned_reads`  
+&nbsp;&nbsp;&nbsp;&nbsp;Percent non-zero amplicons: `r qc$percent_non_zero_amplicons`  
+&nbsp;&nbsp;&nbsp;&nbsp;Median reads per amplicon: `r qc$median_reads_per_amplicon`  
