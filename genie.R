@@ -48,7 +48,7 @@ if(nrow(vcf) > 0){
 vcf =  dplyr::select(vcf, -contains(".1"))
 vcf =  dplyr::select(vcf, -FUNC)
 vcf = dplyr::filter(vcf, alt == origAlt & ref == origRef | alt == "<CNV>")
-
+vcf = dplyr::filter(vcf, AF >= 0.01| alt == "<CNV>")
 # Generate tables
 vcf$variant_type = gsub("[^[:alnum:] ]", "", vcf$variant_type)
 vcf$protein = gsub("\\[|\\]", "", vcf$protein)
